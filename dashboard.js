@@ -1,9 +1,16 @@
 //Kilde: https://bl.ocks.org/alokkshukla/3d6be4be0ef9f6977ec6718b2916d168
+//http://www.barnehagefakta.no/swagger/ui/index#!/Kommune/Kommune_Get
+//http://bl.ocks.org/d3noob/8150631
 this.dashboard=this.dashboard||{};
 
 this.dashboard.barnehagefakta = function() {
     var token = null;
-
+    var norge = {children: [], fylker:[]};
+    var testing = true;
+    if(testing)
+    {
+        norge = dashboardtestdata;
+    }
     return {
         _get : function(url, callback) {
             var self = this;
@@ -16,6 +23,64 @@ this.dashboard.barnehagefakta = function() {
                         alert(errMsg);
                         console.log(errMsg);
                 }});
+        },
+        getFylkerOgKommuner : function(callback) {
+            let url = "http://www.barnehagefakta.no/api/Fylker";
+            this._get(url, callback);
+        },
+        displayFylkesInfo : function() {
+            if(testing)
+            {
+                dashboard.barnehagefakta.displayBubbleChart(norge.children);
+                return;
+            }
+            dashboard.barnehagefakta.getFylkerOgKommuner(function(data) {
+                var asyncArray = [];
+                var antallFylker = data.fylker.length;
+                for(var i = 0; i< antallFylker; i++)
+                {
+                    var bhfFylke = data.fylker[i];
+                    var fylke = {navn: bhfFylke.fylkesnavn, children: [], percent: 0, kommuner: []};
+                    norge.fylker.push(fylke);
+                    
+                    var antallKommunerIFylke = bhfFylke.kommuner.length;
+                    let async = {kommunerDone: 0, kommunerTbd: antallKommunerIFylke};
+                    asyncArray.push(async);
+                    
+                    for(var j = 0; j < bhfFylke.kommuner.length; j++) {
+                        var bhfKommune = bhfFylke.kommuner[j];
+                        dashboard.barnehagefakta.getKommuneInfo(bhfKommune.kommunenummer,  
+                            (function(k,l) {
+                              return function(data) {
+                                    norge.fylker[k].percent = Math.max(norge.fylker[k].percent, data.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen); 
+                                    var kommuneChild = {
+                                        Name: data.navn,
+                                        Count: data.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen,
+                                        Level: "Kommune",
+                                        Index: l
+                                    };
+                                    norge.fylker[k].children.push(kommuneChild);
+                                    asyncArray[k].kommunerDone++;
+                                    if(asyncArray[k].kommunerDone == asyncArray[k].kommunerTbd)
+                                    {
+                                        var fylkeChild = {
+                                            Name: norge.fylker[k].navn,
+                                            Count: norge.fylker[k].percent,
+                                            Level: "Fylke",
+                                            Index: k
+                                        };
+                                        norge.children.push(fylkeChild);
+                                        if(norge.children.length == antallFylker) {
+                                            console.log(norge);
+                                            dashboard.barnehagefakta.displayBubbleChart(norge.children);
+                                        }
+                                    }
+                              };
+                            })(i,j) // calling the function with the current value
+                        );
+                    }
+                }
+            });
         },
         getKommuneInfo : function(kommuneNr, callback) {
             let url = "http://www.barnehagefakta.no/api/Kommune/" + kommuneNr;
@@ -60,12 +125,24 @@ this.dashboard.barnehagefakta = function() {
                 });
 
             node.append("circle")
+                .on('click', function(d) {
+                    console.log("Level:" + d.data.Level + " Indeks:" + d.data.Index);
+                    
+                    $("body").html("")
+                    if(testing) {
+                        dashboard.barnehagefakta.displayBubbleChart(norge.fylker[d.data.Index].children);
+                        return;
+                    }
+                })
                 .attr("r", function(d) {
                     return d.r;
                 })
                 .style("fill", function(d,i) {
-                    if(d.data.Count < 50.0) {
+                    if(d.data.Count > 50.0) {
                         return "#ff0000";
+                    }
+                    else if(d.data.Count > 25.0) {
+                        return "#ffff00";
                     }
                     else
                     {
@@ -76,6 +153,7 @@ this.dashboard.barnehagefakta = function() {
             node.append("text")
                 .attr("dy", ".2em")
                 .style("text-anchor", "middle")
+                .style("pointer-events", "none")
                 .text(function(d) {
                     return d.data.Name.substring(0, d.r / 3);
                 })
@@ -83,11 +161,12 @@ this.dashboard.barnehagefakta = function() {
                 .attr("font-size", function(d){
                     return d.r/5;
                 })
-                .attr("fill", "white");
+                .attr("fill", "black");
 
             node.append("text")
                 .attr("dy", "1.3em")
                 .style("text-anchor", "middle")
+                .style("pointer-events", "none")
                 .text(function(d) {
                     return d.data.Count;
                 })
@@ -95,7 +174,7 @@ this.dashboard.barnehagefakta = function() {
                 .attr("font-size", function(d){
                     return d.r/5;
                 })
-                .attr("fill", "white");
+                .attr("fill", "black");
 
             d3.select(self.frameElement)
                 .style("height", diameter + "px");
@@ -104,16 +183,5 @@ this.dashboard.barnehagefakta = function() {
 }();
 
 jQuery(function($) {
-    var children = [];
-    dashboard.barnehagefakta.getKommuneInfo(1902, function(data) {
-        //{"Name":"Olives","Count":4319}
-        var kommune = {
-            Name: data.navn,
-            Count: data.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen
-        };
-        children.push(kommune)
-        console.log(children);
-        dashboard.barnehagefakta.displayBubbleChart(children);
-    });
-    
+    dashboard.barnehagefakta.displayFylkesInfo();
 });
