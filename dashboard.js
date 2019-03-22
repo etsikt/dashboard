@@ -1,3 +1,4 @@
+//Kilde: https://bl.ocks.org/alokkshukla/3d6be4be0ef9f6977ec6718b2916d168
 this.dashboard=this.dashboard||{};
 
 this.dashboard.barnehagefakta = function() {
@@ -20,29 +21,9 @@ this.dashboard.barnehagefakta = function() {
             let url = "http://www.barnehagefakta.no/api/Kommune/" + kommuneNr;
             this._get(url, callback);
         },
-        displayBubbleChart : function() {
+        displayBubbleChart : function(children) {
             dataset = {
-                "children": [{"Name":"Olives","Count":4319},
-                    {"Name":"Tea","Count":4159},
-                    {"Name":"Mashed Potatoes","Count":2583},
-                    {"Name":"Boiled Potatoes","Count":2074},
-                    {"Name":"Milk","Count":1894},
-                    {"Name":"Chicken Salad","Count":1809},
-                    {"Name":"Vanilla Ice Cream","Count":1713},
-                    {"Name":"Cocoa","Count":1636},
-                    {"Name":"Lettuce Salad","Count":1566},
-                    {"Name":"Lobster Salad","Count":1511},
-                    {"Name":"Chocolate","Count":1489},
-                    {"Name":"Apple Pie","Count":1487},
-                    {"Name":"Orange Juice","Count":1423},
-                    {"Name":"American Cheese","Count":1372},
-                    {"Name":"Green Peas","Count":1341},
-                    {"Name":"Assorted Cakes","Count":1331},
-                    {"Name":"French Fried Potatoes","Count":1328},
-                    {"Name":"Potato Salad","Count":1306},
-                    {"Name":"Baked Potatoes","Count":1293},
-                    {"Name":"Roquefort","Count":1273},
-                    {"Name":"Stewed Prunes","Count":1268}]
+                "children": children
             };
 
             var diameter = 600;
@@ -83,7 +64,14 @@ this.dashboard.barnehagefakta = function() {
                     return d.r;
                 })
                 .style("fill", function(d,i) {
-                    return "#000000";
+                    if(d.data.Count < 50.0) {
+                        return "#ff0000";
+                    }
+                    else
+                    {
+                        return "#00ff00";
+                    }
+                    
                 });
             node.append("text")
                 .attr("dy", ".2em")
@@ -116,8 +104,16 @@ this.dashboard.barnehagefakta = function() {
 }();
 
 jQuery(function($) {
+    var children = [];
     dashboard.barnehagefakta.getKommuneInfo(1902, function(data) {
-        console.log(data);
+        //{"Name":"Olives","Count":4319}
+        var kommune = {
+            Name: data.navn,
+            Count: data.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen
+        };
+        children.push(kommune)
+        console.log(children);
+        dashboard.barnehagefakta.displayBubbleChart(children);
     });
-    dashboard.barnehagefakta.displayBubbleChart();
+    
 });
