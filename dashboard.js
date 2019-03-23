@@ -5,13 +5,22 @@ this.dashboard=this.dashboard||{};
 
 this.dashboard.barnehagefakta = function() {
     var token = null;
-    var norge = {children: [], fylker:[]};
-    var testing = true;
-    if(testing)
-    {
-        norge = dashboardtestdata;
-    }
+    var norge = {fylker:[]};
+    var fetchBarnehageOversiktOnly = false;
+    var fetchBarnehageInfoOnly = false;
     return {
+        process : function() {
+            if(fetchBarnehageOversiktOnly) {
+                dashboard.barnehagefakta.fetchBarnehageOversikt();
+            } else if (fetchBarnehageInfoOnly) {
+                norge = barnehagefaktadata;
+                dashboard.barnehagefakta.fetchBarnehageInfo();
+            } else {
+                norge = barnehageinfo;
+                dashboard.barnehagefakta.updateStatistics();
+                dashboard.barnehagefakta.displayBubbleChart(norge.fylker);
+            }
+        },
         _get : function(url, callback) {
             var self = this;
             $.ajax({
@@ -28,59 +37,185 @@ this.dashboard.barnehagefakta = function() {
             let url = "http://www.barnehagefakta.no/api/Fylker";
             this._get(url, callback);
         },
-        displayFylkesInfo : function() {
-            if(testing)
+        addBarnehager : function(k, l, bhfBarnehager) {
+            norge.fylker[k].kommuner[l].bhfBarnehager = bhfBarnehager;
+        },
+        addBarnehage : function(k, l, m, bhfBarnehage, c) {
+            var barnehage = {
+                Name: bhfBarnehage.navn, 
+                Count: c,
+                Level: "Barnehage",
+                Fylkesindeks: k,
+                Kommuneindeks: l,
+                Barnehageindeks: m
+            };
+            norge.fylker[k].kommuner[l].barnehager.push(barnehage);
+        },
+        addBarnehageFakta : function(k, l, m, bhfBarnehage) {
+            norge.fylker[k].kommuner[l].bhfBarnehager[m].bhfBarnehage = bhfBarnehage;
+        },
+        addKommune : function(k, l, bhfKommune) {
+            var kommune = {
+                Name: bhfKommune.kommunenavn,
+                Count: 0,
+                Level: "Kommune",
+                Fylkesindeks: k,
+                Kommuneindeks: l,
+                barnehager: []
+            };
+            norge.fylker[k].kommuner.push(kommune);
+        },
+        addFylke : function(k, bhfFylke)
+        {
+            var fylke = {
+                Name: bhfFylke.fylkesnavn,
+                Count: 0,
+                Level: "Fylke",
+                Fylkesindeks: k,
+                kommuner: []
+            };
+            norge.fylker.push(fylke);
+        },
+        updateStatistics : function() {
+            for(var i = 0; i< norge.fylker.length; i++)
             {
-                dashboard.barnehagefakta.displayBubbleChart(norge.children);
+                for(var j = 0; j< norge.fylker[i].kommuner.length; j++)
+                {
+                    for(var k = 0; k < norge.fylker[i].kommuner[j].bhfBarnehager.length; k++)
+                    {
+                        dashboard.barnehagefakta.updateBarnehageInfo(i, j, k, norge.fylker[i].kommuner[j].bhfBarnehager[k].bhfBarnehage);
+                    }
+                }
+            }        
+        },
+        updateBarnehageInfo : function(k,l,m, bhfBarnehageInfo) {
+            norge.fylker[k].Count = Math.max(norge.fylker[k].Count, bhfBarnehageInfo.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen); 
+            norge.fylker[k].kommuner[l].Count = Math.max(norge.fylker[k].Count, bhfBarnehageInfo.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen); 
+
+            dashboard.barnehagefakta.addBarnehage(k,l,m, bhfBarnehageInfo, 100);
+            return;
+
+            if(!bhfBarnehageInfo.indikatorDataBarnehage)
+            {
+                norge.fylker[k].kommuner[l].barnehager[m].Count = 100;
                 return;
             }
-            dashboard.barnehagefakta.getFylkerOgKommuner(function(data) {
-                var asyncArray = [];
-                var antallFylker = data.fylker.length;
-                for(var i = 0; i< antallFylker; i++)
+
+            var a = bhfBarnehageInfo.indikatorDataBarnehage.andelAnsatteMedBarneOgUngdomsarbeiderfag;
+            var b = bhfBarnehageInfo.indikatorDataBarnehage.andelAnsatteBarnehagelarer;
+            var c = bhfBarnehageInfo.indikatorDataBarnehage.andelAnsatteMedAnnenHoyereUtdanning;
+            var d = bhfBarnehageInfo.indikatorDataBarnehage.andelAnsatteMedAnnenFagarbeiderutdanning;
+            var e = bhfBarnehageInfo.indikatorDataBarnehage.andelAnsatteMedAnnenBakgrunn;
+            var f = bhfBarnehageInfo.indikatorDataBarnehage.andelAnsatteMedAnnenPedagogiskUtdanning;
+
+            var s = 0;
+            
+            if(a) s += a;
+            if(b) s += b;
+            if(c) s += c;
+            if(d) s += d;
+            if(e) s += e;
+            if(f) s += f;
+             
+            norge.fylker[k].kommuner[l].barnehager[m].Count = s;
+
+        },
+        updateProgress : function() {
+            $("#dashboardProgress").append(".");
+        },
+        getNumberOfKommuner: function(fylker)
+        {
+            var noOfKommuner = 0;
+            for(var i = 0; i< fylker.length; i++)
+            {
+                noOfKommuner += fylker[i].kommuner.length;
+            }
+            return noOfKommuner;
+        },
+        getNumberOfBarnehager : function() {
+            var noOfBarnehager = 0;
+            for(var i = 0; i< norge.fylker.length; i++)
+            {
+                for(var j = 0; j < norge.fylker[i].kommuner.length; j++)
                 {
-                    var bhfFylke = data.fylker[i];
-                    var fylke = {navn: bhfFylke.fylkesnavn, children: [], percent: 0, kommuner: []};
-                    norge.fylker.push(fylke);
-                    
-                    var antallKommunerIFylke = bhfFylke.kommuner.length;
-                    let async = {kommunerDone: 0, kommunerTbd: antallKommunerIFylke};
-                    asyncArray.push(async);
-                    
-                    for(var j = 0; j < bhfFylke.kommuner.length; j++) {
-                        var bhfKommune = bhfFylke.kommuner[j];
-                        dashboard.barnehagefakta.getKommuneInfo(bhfKommune.kommunenummer,  
-                            (function(k,l) {
-                              return function(data) {
-                                    norge.fylker[k].percent = Math.max(norge.fylker[k].percent, data.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen); 
-                                    var kommuneChild = {
-                                        Name: data.navn,
-                                        Count: data.indikatorDataKommune.andelBarnehagerSomIkkeOppfyllerPedagognormen,
-                                        Level: "Kommune",
-                                        Index: l
-                                    };
-                                    norge.fylker[k].children.push(kommuneChild);
-                                    asyncArray[k].kommunerDone++;
-                                    if(asyncArray[k].kommunerDone == asyncArray[k].kommunerTbd)
-                                    {
-                                        var fylkeChild = {
-                                            Name: norge.fylker[k].navn,
-                                            Count: norge.fylker[k].percent,
-                                            Level: "Fylke",
-                                            Index: k
-                                        };
-                                        norge.children.push(fylkeChild);
-                                        if(norge.children.length == antallFylker) {
-                                            console.log(norge);
-                                            dashboard.barnehagefakta.displayBubbleChart(norge.children);
-                                        }
-                                    }
+                    noOfBarnehager += norge.fylker[i].kommuner[j].bhfBarnehager.length;
+                }
+            }
+            return noOfBarnehager;
+        },
+        fetchBarnehageInfo : function () {
+            let asyncBarnehagerTbd = dashboard.barnehagefakta.getNumberOfBarnehager();
+            let asyncBarnehagerDone = 0;
+            
+            for(var i = 0; i< norge.fylker.length; i++)
+            {
+                for(var j = 0; j< norge.fylker[i].kommuner.length; j++)
+                {
+                    for(var k = 0; k < norge.fylker[i].kommuner[j].bhfBarnehager.length; k++)
+                    {
+                        var bhfBarnehage = norge.fylker[i].kommuner[j].bhfBarnehager[k];
+
+                        dashboard.barnehagefakta.getBarnehageInfo(bhfBarnehage.nsrId,  
+                            (function(n,o,p) {
+                              return function(bhfBarnehageInfo) {
+                                asyncBarnehagerDone++;
+
+                                dashboard.barnehagefakta.addBarnehageFakta(n,o, p, bhfBarnehageInfo);
+
+                                if(asyncBarnehagerDone == asyncBarnehagerTbd)
+                                {                                                
+                                    console.log(norge);
+                                }
                               };
-                            })(i,j) // calling the function with the current value
+                            })(i,j,k) // calling the function with the current value
                         );
                     }
                 }
+            }
+        },
+        fetchBarnehageOversikt : function() {
+            dashboard.barnehagefakta.getFylkerOgKommuner(function(data) {
+                var asyncFylkesArray = [];
+                var asyncKommuneArray = [];
+                var antallFylker = data.fylker.length;
+                let asyncKommunerTbd = dashboard.barnehagefakta.getNumberOfKommuner(data.fylker);
+                let asyncKommunerDone = 0;
+
+                for(var i = 0; i< antallFylker; i++)
+                {
+                    var bhfFylke = data.fylker[i];
+                    dashboard.barnehagefakta.addFylke(i, bhfFylke);
+                    
+                    var antallKommunerIFylke = bhfFylke.kommuner.length;
+                    
+                    for(var j = 0; j < antallKommunerIFylke; j++) {
+                        var bhfKommune = bhfFylke.kommuner[j];
+                        dashboard.barnehagefakta.addKommune(i,j,bhfKommune);
+
+                        dashboard.barnehagefakta.getBarnehager(bhfKommune.kommunenummer,  
+                            (function(k,l) {
+                              return function(bhfBarnehager) {
+                                dashboard.barnehagefakta.addBarnehager(k, l, bhfBarnehager);
+                                asyncKommunerDone++;
+                                if(asyncKommunerDone == asyncKommunerTbd)
+                                {
+                                    console.log(norge);
+                                    //dashboard.barnehagefakta.processBarnehager();
+                                }
+                              };
+                            })(i,j) // calling the function with the current value
+                        );
+                    } //end for alle kommuner i fylket
+                } //end for all fylker
             });
+        },
+        getBarnehager : function(kommuneNr, callback) {
+            let url = "http://www.barnehagefakta.no/api/Location/kommune/" + kommuneNr;
+            this._get(url, callback);
+        },
+        getBarnehageInfo : function(nsrid, callback) {
+            let url = "http://www.barnehagefakta.no/api/Barnehage/" + nsrid;
+            this._get(url, callback);
         },
         getKommuneInfo : function(kommuneNr, callback) {
             let url = "http://www.barnehagefakta.no/api/Kommune/" + kommuneNr;
@@ -126,12 +261,16 @@ this.dashboard.barnehagefakta = function() {
 
             node.append("circle")
                 .on('click', function(d) {
-                    console.log("Level:" + d.data.Level + " Indeks:" + d.data.Index);
+                    console.log("Level:" + d.data.Level + " Indeks:" + d.data.Fylkesindeks);
                     
                     $("body").html("")
-                    if(testing) {
-                        dashboard.barnehagefakta.displayBubbleChart(norge.fylker[d.data.Index].children);
-                        return;
+                    if(d.data.Level == "Fylke")
+                    {
+                        dashboard.barnehagefakta.displayBubbleChart(norge.fylker[d.data.Fylkesindeks].kommuner);
+                    }
+                    else if(d.data.Level == "Kommune")
+                    {
+                        dashboard.barnehagefakta.displayBubbleChart(norge.fylker[d.data.Fylkesindeks].kommuner[d.data.Kommuneindeks].barnehager);
                     }
                 })
                 .attr("r", function(d) {
@@ -183,5 +322,5 @@ this.dashboard.barnehagefakta = function() {
 }();
 
 jQuery(function($) {
-    dashboard.barnehagefakta.displayFylkesInfo();
+    dashboard.barnehagefakta.process();
 });
