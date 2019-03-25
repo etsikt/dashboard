@@ -1,17 +1,30 @@
 <!DOCTYPE html>  
 <html>   
 <head>
-<title>Alle læreplaner  
+<title>Dashboard barnehage
 </title>      
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+<script src='jso.js'></script>  
+<script src='dataporten.js'></script>  
 <script src='barnehagefaktadata.js'></script>  
 <script src='barnehageinfo.js'></script>  
 <script src='dashboard.js'>  </script>    
+<script src='brreg.js'>  </script>    
+<script src='main.js'>  </script>    
 
 </head>    
 <meta charset='UTF-8'>    
 <body> 
+<h1>Dashboard barnehage</h1>
+Røde sirkler indikerer at det er en eller flere barnehager som har for mange barn
+per ansatt i henhold til 
+<a href="https://lovdata.no/dokument/NL/lov/2005-06-17-64/KAPITTEL_5#shareModal"
+ target="_blank">§18 i barnehageloven</a> og tall fra <a href="http://barnehagefakta.no/">
+ barnehagefakta.no</a>
+<div id="dataporten"></div>
+<div id="dashboardPersonalKommuneMenu"></div>
+<div id="dashboardPersonalBarnehageMenu"></div>
 <div id="dashboardMenu"></div>
 <div id="dashboardProgress"></div>
 <div id="barnehagefaktaGrafikk"></div>
