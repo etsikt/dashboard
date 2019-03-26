@@ -145,7 +145,7 @@ this.dashboard.barnehagefakta = function() {
                             dashboard.barnehagefakta.updateProgress("Laster data", percentComplete);
                             console.log(percentComplete);
                           } else if(evt.loaded) {
-                            dashboard.barnehagefakta.updateProgress("Laster data:" + evt.loaded, 100);
+                            dashboard.barnehagefakta.updateProgress("Laster data:", evt.loaded / 30000000*100);
                           }
                         }, false);
                         return xhr;
@@ -353,7 +353,6 @@ this.dashboard.barnehagefakta = function() {
                                 if(asyncKommunerDone == asyncKommunerTbd)
                                 {
                                     console.log(norge);
-                                    //dashboard.barnehagefakta.processBarnehager();
                                 }
                               };
                             })(i,j) // calling the function with the current value
