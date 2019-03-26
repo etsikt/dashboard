@@ -3,6 +3,5 @@ jQuery(function($) {
         console.log("dataportenCallback");
         dashboard.dataporten.dataportenCallback();
     } 
-    dashboard.dataporten.display();
     dashboard.barnehagefakta.process();
 });

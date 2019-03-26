@@ -7,12 +7,11 @@
 <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
 <script src='jso.js'></script>  
 <script src='dataporten.js'></script>  
-<script src='barnehagefaktadata.js'></script>  
-<script src='barnehageinfo.js'></script>  
 <script src='dashboard.js'>  </script>    
 <script src='brreg.js'>  </script>    
 <script src='main.js'>  </script>    
-
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" href="dashboard.css">
 </head>    
 <meta charset='UTF-8'>    
 <body> 
@@ -33,7 +32,14 @@ per ansatt i henhold til
 <div id="dashboardPersonalKommuneMenu"></div>
 <div id="dashboardPersonalBarnehageMenu"></div>
 <div id="dashboardMenu"></div>
-<div id="dashboardProgress"></div>
+<div id="dashboardProgress">
+  <div id="progressText"></div>
+    <div id="progressBar" class="progress">
+      <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+        <span id="current-progress"></span>
+      </div>
+    </div>
+</div>
 <div id="dashboardHeader"></div>
 <div id="barnehagefaktaGrafikk"></div>
 </body>  

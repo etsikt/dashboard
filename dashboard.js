@@ -16,12 +16,19 @@ this.dashboard.barnehagefakta = function() {
             if(fetchBarnehageOversiktOnly) {
                 dashboard.barnehagefakta.fetchBarnehageOversikt();
             } else if (fetchBarnehageInfoOnly) {
-                norge = barnehagefaktadata;
-                dashboard.barnehagefakta.fetchBarnehageInfo();
+                var url = "barnehagefaktadata.js";
+                this._get(url, function(data) {
+                    norge = data;
+                    dashboard.barnehagefakta.fetchBarnehageInfo();
+                });
             } else {
-                norge = barnehageinfo;
-                dashboard.barnehagefakta.updateStatistics();
-                dashboard.barnehagefakta.displayNorge();
+                var url = "barnehageinfo.js";
+                this._get(url, function(data) {
+                    norge = data;
+                    dashboard.barnehagefakta.updateStatistics();
+                    dashboard.barnehagefakta.displayNorge();
+                    dashboard.dataporten.display();
+                });
             }
         },
         updateHeader : function(s) {
@@ -117,8 +124,32 @@ this.dashboard.barnehagefakta = function() {
         _get : function(url, callback) {
             var self = this;
             $.ajax({
+                    async: true,
                     url: url,
+                    dataType: "json",
+                    xhr: function()
+                    {
+                        var xhr = new window.XMLHttpRequest();
+                        //Upload progress
+                        xhr.upload.addEventListener("progress", function(evt){
+                          if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total;
+                            //Do something with upload progress
+                            console.log(percentComplete);
+                          }
+                        }, false);
+                        //Download progress
+                        xhr.addEventListener("progress", function(evt){
+                          if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total *100;
+                            dashboard.barnehagefakta.updateProgress("Laster data", percentComplete);
+                            console.log(percentComplete);
+                          }
+                        }, false);
+                        return xhr;
+                    },                    
                     success: function(data){
+                        dashboard.barnehagefakta.updateProgress("", 100);
                         callback(data)
                     }, error: function(XMLHttpRequest, textStatus, errorThrown) {
                         let errMsg = 'Det oppstod en feil:' + errorThrown;
@@ -227,8 +258,21 @@ this.dashboard.barnehagefakta = function() {
 
             dashboard.barnehagefakta.addBarnehage(k,l,m, bhfKommuneBarnehage, alarm);
         },
-        updateProgress : function() {
-            $("#dashboardProgress").append(".");
+        updateProgress : function(s,p) {
+            var v = Math.round(p);
+            $("#progressText").html(s);
+            if(s != "")
+            {
+                $("#progressBar").show();
+                $("#dynamic")
+                    .css("width", v + "%")
+                    .attr("aria-valuenow", v)
+                    .text(v + "%");
+            } else {
+                $("#progressBar").hide();
+            }
+            
+
         },
         getNumberOfKommuner: function(fylker)
         {

@@ -1,4 +1,4 @@
-var barnehagefaktadata = {
+{
   "fylker": [
     {
       "Name": "Østfold",
