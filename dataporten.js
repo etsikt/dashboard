@@ -4,21 +4,17 @@ this.dashboard.dataporten = function() {
     var token = null;
     var testBarnehageOrgnr = true;
 
-/*
 //Production
-    let request = ['email','longterm', 'openid', 'profile', 'userid-feide', 'groups', 'gk_kpas', 'userinfo-entitlement', 'userinfo-extra'];
-    let dataportenCallback = 'https://bibsys.instructure.com/courses/234?dataportenCallback=1';
-    let dataportenClientId = '823e54e4-9cb7-438f-b551-d1af9de0c2cd';
-    let kpasapiurl = "https://kpas.dataporten-api.no";    
-
-*/
-
-//Localhost testing:
     let request = ['email','longterm', 'openid', 'profile', 'userid-feide', 'groups'];
     let dataportenCallback = 'http://localhost:8880/dashboard/index.html';
     let dataportenClientId = '8469a56c-4bc5-4b0a-89ef-132e054a99c1';
-    let kpasapiurl = "https://kpasbeta.dataporten-api.no";    
-        
+
+//Localhost testing:
+/*
+    let request = ['email','longterm', 'openid', 'profile', 'userid-feide', 'groups'];
+    let dataportenCallback = 'udirditdashboard.azurewebsites.net/index.html';
+    let dataportenClientId = '7f4af0bd-622f-4299-abcb-f979f79c0ab4';
+*/        
     var client = new jso.JSO({
                 providerID: "Dataporten",
                 client_id: dataportenClientId,
