@@ -49,9 +49,9 @@ this.dashboard.dataporten = function() {
             $("#dataportenContent").html("");
         },
         dataportenCallback : function() {
-            console.log("dataportenCallback");
             client.callback();
         },
+        
         display: function() {
             $("#dataporten").html("<div id='dataportenStatus'/><div id='dataportenContent'/>");
             let dataporten_opts = {
@@ -66,7 +66,9 @@ this.dashboard.dataporten = function() {
             if(this.token) {
                 console.log(this.token.access_token);
                 this.validToken();
-            } else {
+            } 
+            else
+            {
                 dashboard.dataporten.clearStatus();
                 this.printLoginOptions();
             }
@@ -135,17 +137,69 @@ this.dashboard.dataporten = function() {
             let url = "https://auth.dataporten.no/userinfo";
             this._get(url, callback);
         },
-        displayPersonalKommuneMenu : function(knr) {
-            $("#dashboardPersonalKommuneMenu").html("<button id='visMinKommune'>Vis min kommune</button>");
-            $("#visMinKommune").click(function(){
-                dashboard.barnehagefakta.displayKommuneByKommunenr(knr);
+        displayPersonalKommuneMenu : function(NOorgnr) {
+            dashboard.brreg.getOrgFromNO_OrgNr(NOorgnr, function(org) {
+                try {
+                    var knr = org.postadresse.kommunenummer;
+                    var r = dashboard.barnehagefakta.getKommuneIndeksByKommunenr(knr);
+                    if(r){
+                        var navn = dashboard.barnehagefakta.getKommunenavnByIndeks(r.fylkesIndeks,r.kommuneIndeks);
+                        if(navn)
+                        {
+                            var kommuneMenu = "<button id='visMinKommune'>Vis min kommune - " + navn + "</button>";
+                            $("#dashboardPersonalKommuneMenu").html(kommuneMenu);
+                            $("#visMinKommune").click(function(){
+                                dashboard.barnehagefakta.displayKommune(r.fylkesIndeks,r.kommuneIndeks);
+                            });
+                        } else
+                        {
+                            var kommuneMenu = "Fant ikke kommune for organisasjonen" + NOorgnr;
+                            $("#dashboardPersonalKommuneMenu").html(kommuneMenu);
+                        }
+                    }
+                    else {
+                        console.log("Fant ikke kommune for organisasjonen" + NOorgnr);
+                        var kommuneMenu = "Fant ikke kommune for organisasjonen" + NOorgnr;
+                        $("#dashboardPersonalKommuneMenu").html(kommuneMenu);
+                    }
+                } catch(err) {
+                    console.log("displayPersonalKommuneMenu exception:" + err);
+                }
             });
         },
         displayPersonalBarnehageMenu : function(orgnr) {
-            $("#dashboardPersonalBarnehageMenu").html("<button id='visMinBarnehage'>Vis min barnehage</button>");
-            $("#visMinBarnehage").click(function(){
-                dashboard.barnehagefakta.displayBarnehageByOrgnr(orgnr);
-            });
+                                
+            if(testBarnehageOrgnr)
+            {
+                orgnr = "973503065";
+            }
+
+            var r = dashboard.barnehagefakta.getBarnehageIndeksByOrgnr(orgnr);
+            if(r) {
+                var navn = dashboard.barnehagefakta.getBarnehagenavnByIndeks(r.fylkesIndeks,r.kommuneIndeks,r.barnehageIndeks);
+                if(navn)
+                {
+                    var barnehageMenu = "<button id='visMinBarnehage'>Vis min barnehage - " + navn + "</button>";
+                    if(testBarnehageOrgnr)
+                    {
+                        barnehageMenu += "(TEST - slå av variabel i javascript dersom du har en Feideid fra en barnehage)";
+                    }
+
+                    $("#dashboardPersonalBarnehageMenu").html(barnehageMenu);
+                    $("#visMinBarnehage").click(function(){
+                        dashboard.barnehagefakta.displayBarnehage(r.fylkesIndeks,r.kommuneIndeks,r.barnehageIndeks);
+                        dashboard.barnehagefakta.displayBarnehageByOrgnr(orgnr);
+                    });
+                }
+                else
+                {
+                    $("#dashboardPersonalBarnehageMenu").html("Fant ikke navn på barnehage for organisasjonsnummer " + orgnr);
+                }
+            }
+            else
+            {
+                $("#dashboardPersonalBarnehageMenu").html("Fant ikke barnehage for organisasjonsnummer " + orgnr);
+            }
         },
         displayGroups: function() {
             dashboard.dataporten.clearContent();
@@ -175,19 +229,11 @@ this.dashboard.dataporten = function() {
                 }
                 if(parentOrgFound)
                 {
-                    dashboard.brreg.getKommuneNrFromOrgNr(NOorgnrParent, function(org) {
-                        var knr = org.postadresse.kommunenummer;
-                        dashboard.dataporten.displayPersonalKommuneMenu(knr);
-                    });
+                    dashboard.dataporten.displayPersonalKommuneMenu(NOorgnrParent);
                 }
                 if(orgFound)
                 {
                     var orgnr = NOorgnr.substr(2);
-                    
-                    if(testBarnehageOrgnr)
-                    {
-                        orgnr = "973503065";
-                    }
                     dashboard.dataporten.displayPersonalBarnehageMenu(orgnr);
                 }                
                 dashboard.dataporten.clearStatus();

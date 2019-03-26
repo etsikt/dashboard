@@ -21,12 +21,31 @@ Røde sirkler indikerer at det er en eller flere barnehager som har for mange ba
 per ansatt i henhold til 
 <a href="https://lovdata.no/dokument/NL/lov/2005-06-17-64/KAPITTEL_5#shareModal"
  target="_blank">§18 i barnehageloven</a> og tall fra <a href="http://barnehagefakta.no/">
- barnehagefakta.no</a>
+ barnehagefakta.no</a><p>
+ Størrelsen på sirklene og tallet i dem viser hvor mange barn det er i barnehagen(e).
+ </p>
+ <p>
+ Gul farge på sirklene viser at det mangler data fra barnehagen(e).
+ </p>
+Grafikken er laget med open source biblioteket <a href="https://d3js.org/" target="_blank">D3</a> og
+i dette tilfellet basert på <a href="https://bl.ocks.org/alokkshukla/3d6be4be0ef9f6977ec6718b2916d168"
+target="_blank">dette eksempelet</a>.
+<p>Når brukeren logger på hentes gruppene til brukeren fra dataporten. I gruppene står det hvilke organisasjoner brukeren
+tilhører med organisasjonsnummer. Organisasjonsnumrene brukes til oppslag i Brønnøysundregistrene for å hente ut kommunenummeret 
+organisasjonen befinner seg i, f.eks. slik: <a href ="https://data.brreg.no/enhetsregisteret/api/enheter/970018131" target="_blank">
+https://data.brreg.no/enhetsregisteret/api/enheter/970018131</a>. Organisasjonsnummeret brukes også til å finne ut hvilken 
+barnehage personen tilhører. 
+</p>
+
+
 <div id="dataporten"></div>
 <div id="dashboardPersonalKommuneMenu"></div>
 <div id="dashboardPersonalBarnehageMenu"></div>
 <div id="dashboardMenu"></div>
 <div id="dashboardProgress"></div>
+<div id="dashboardHeader"></div>
 <div id="barnehagefaktaGrafikk"></div>
+
+
 </body>  
 </html>

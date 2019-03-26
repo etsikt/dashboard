@@ -17,7 +17,7 @@ this.dashboard.brreg = function() {
                 }
             });
         },
-        getKommuneNrFromOrgNr : function(NOorgnr, callback) {
+        getOrgFromNO_OrgNr : function(NOorgnr, callback) {
             var orgnr = NOorgnr.substr(2);
             let url = "https://data.brreg.no/enhetsregisteret/api/enheter/" + orgnr;
             this._get(url, callback);
