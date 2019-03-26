@@ -1,0 +1,52 @@
+<!DOCTYPE html>  
+<html>   
+<head>
+<title>Dashboard barnehage - arkitektur
+</title>      
+</head>    
+<meta charset='UTF-8'>    
+<body> 
+<h1>Dashboard barnehage - arkitektur</h1>
+<h2>Grafikk</h2>
+Grafikken er laget med open source biblioteket <a href="https://d3js.org/" target="_blank">D3</a> og
+i dette tilfellet basert på <a href="https://bl.ocks.org/alokkshukla/3d6be4be0ef9f6977ec6718b2916d168"
+target="_blank">dette eksempelet</a>.
+<h2>Barnehagefakta</h2>
+Informasjon om alle barnehager i Norge er lastet ned med barnehagefakta sitt API og lagret i en lokal 
+json-fil. Dette gjøres i to omganger ved å slå på variablene nedenfor i hver sin omgang
+<pre>
+    var fetchBarnehageOversiktOnly = false;
+    var fetchBarnehageInfoOnly = false;
+</pre>
+Disse variablene befinner seg i <a href="dashboard.js" target="_blank">dashboard.js</a>.
+Når den første variabelen er slått på, hentes oversikt over alle fylker, kommuner og barnehagene. 
+Slik hentes f.eks. en liste over alle barnehager i Tromsø kommune: <a href="http://www.barnehagefakta.no/api/Location/kommune/1902" target="_blank">
+http://www.barnehagefakta.no/api/Location/kommune/1902</a>.
+
+Resultatet legges i en variabel med navn norge som
+skrives til console.log. Derfra kopierer man innholdet over til filen <a href="barnehagefaktadata.js" target="_blank">barnehagefaktadata.js</a>. 
+Json-objektet tilordnes variabelen <code>var barnehagefaktadata = ... </code>.
+I andre omgang slås <code>fetchBarnehageOversiktOnly</code> av og <code>fetchBarnehageInfoOnly</code> på.
+Resultatet skrives inn i norge variabelen og dumpes på nytt til console.log. Innholdet derfra kopieres inn i filen 
+<a href="barnehageinfo.js" target="_blank">barnehageinfo.js</a>. Json-objektet tilordnes variabelen <code>var barnehageinfo = ... </code>.
+
+<p/>
+
+<h2>Dataporten</h2>
+<p>Kommunikasjon med dataporten gjøres med <a href="https://github.com/andreassolberg/jso" target="_blank">jso bibliotetet</a>. Dataport-tjenesten 
+må registreres i <a href="https://dashboard.dataporten.no" target="_blank">dashboard.dataporten.no</a>.
+<p>
+Når brukeren logger på hentes gruppene til brukeren fra dataporten. I gruppene står det hvilke organisasjoner brukeren
+tilhører med organisasjonsnummer. 
+</p>
+<h2>Brønnøysundregisteret</h2>
+Organisasjonsnumrene brukes til oppslag i Brønnøysundregistrene for å hente ut kommunenummeret 
+organisasjonen befinner seg i, f.eks. slik: <a href ="https://data.brreg.no/enhetsregisteret/api/enheter/970018131" target="_blank">
+https://data.brreg.no/enhetsregisteret/api/enheter/970018131</a>. Organisasjonsnummeret brukes også til å finne ut hvilken 
+barnehage personen tilhører. 
+
+<h2>Skisse over arkitektur</h2>
+<img src="dashboard.png"></img>
+</p>
+</body>  
+</html>
