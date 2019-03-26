@@ -144,6 +144,8 @@ this.dashboard.barnehagefakta = function() {
                             var percentComplete = evt.loaded / evt.total *100;
                             dashboard.barnehagefakta.updateProgress("Laster data", percentComplete);
                             console.log(percentComplete);
+                          } else if(evt.loaded) {
+                            dashboard.barnehagefakta.updateProgress("Laster data:" + evt.loaded, 100);
                           }
                         }, false);
                         return xhr;
@@ -261,15 +263,15 @@ this.dashboard.barnehagefakta = function() {
         updateProgress : function(s,p) {
             var v = Math.round(p);
             $("#progressText").html(s);
-            if(s != "")
+            if(p == 100)
             {
+                $("#progressBar").hide();
+            } else {
                 $("#progressBar").show();
                 $("#dynamic")
                     .css("width", v + "%")
                     .attr("aria-valuenow", v)
                     .text(v + "%");
-            } else {
-                $("#progressBar").hide();
             }
             
 
